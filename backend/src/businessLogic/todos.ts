@@ -1,5 +1,4 @@
 import { TodosAccess } from '../dataLayer/todosAcess'
-import { AttachmentUtils } from '../helpers/attachmentUtils';
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
@@ -9,7 +8,6 @@ import * as uuid from 'uuid'
 
 const logger = createLogger('businessLogic-todos')
 const todosAccess = new TodosAccess()
-const attachmentUtils = new AttachmentUtils()
  
 export async function createTodo(
     newTodo: CreateTodoRequest,
@@ -19,14 +17,13 @@ export async function createTodo(
 
   const createdAt = new Date().toISOString()
   const todoId = uuid.v4()
-  const s3AttachmentUrl = attachmentUtils.getAttachmentUrl(todoId);
 
   const newItem: TodoItem = {
     userId,
     todoId,
     createdAt,
     done: false,
-    attachmentUrl: s3AttachmentUrl,
+    attachmentUrl: '',
     ...newTodo
   }
 
@@ -54,12 +51,13 @@ export async function updateTodo(
   return todosAccess.updateTodoItem(todoId, userId, todoUpdate)
 }
 
-export async function createAttachmentPresignedUrl(
+export async function updateAttachmentUrl(
     todoId: string,
-    userId: string
+    userId: string, 
+    attachmentUrl: string
   ): Promise<string> {
     logger.info('create Attachment func called by user: ', userId);
-    return attachmentUtils.getUploadUrl(todoId)
+    return todosAccess.updateAttachmentUrl(todoId, userId, attachmentUrl)
 }
 
 // write delete todo func

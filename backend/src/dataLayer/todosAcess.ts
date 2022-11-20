@@ -54,7 +54,7 @@ const logger = createLogger('TodosAccess')
         ): Promise<TodoUpdate> {
             logger.info('Call Update todo item func');
 
-            const result = await this.docClient.update({
+            await this.docClient.update({
                 TableName: this.todosTable,
                 Key: {
                     userId: userId,
@@ -69,11 +69,32 @@ const logger = createLogger('TodosAccess')
             ExpressionAttributeNames: {
             "#dynobase_name": "name"
             },
-            ReturnValues: 'ALL_NEW'
         }).promise()
 
         logger.info('To do item updated')
-        return result.Attributes as TodoUpdate
+        return todoUpdate
+    }
+
+    async updateAttachmentUrl(
+        todoId: string, 
+        userId: string,
+        uploadUrl: string): Promise<string> {
+        logger.info('call TodosAccess.updateTodo'+ uploadUrl);
+        
+        await this.docClient.update({
+            TableName: this.todosTable,
+            Key: {
+                userId: userId,
+                todoId: todoId
+            },
+            UpdateExpression: 'set attachmentUrl = :attachmentUrl',
+            ExpressionAttributeValues: {
+                ':attachmentUrl': uploadUrl.split("?")[0]
+            }
+        }).promise()
+
+        logger.info('result: ' + uploadUrl);
+        return uploadUrl
     }
 
     async deleteTodoItem(
